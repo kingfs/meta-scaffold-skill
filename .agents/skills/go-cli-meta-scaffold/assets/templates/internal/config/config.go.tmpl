@@ -8,19 +8,29 @@ import (
 )
 
 type Config struct {
-	Output string `mapstructure:"output"`
+	Format  string `mapstructure:"format"`
+	Output  string `mapstructure:"output"`
+	Quiet   bool   `mapstructure:"quiet"`
+	NoInput bool   `mapstructure:"no_input"`
+	NoColor bool   `mapstructure:"no_color"`
+	TraceID string `mapstructure:"trace_id"`
 }
 
 var current = Config{
+	Format: "text",
 	Output: "text",
 }
 
-func Load(configFile, envPrefix, output string) error {
+func Load(configFile, envPrefix, format, output string, quiet, noInput, noColor bool, traceID string) error {
 	v := viper.New()
 	v.SetEnvPrefix(envPrefix)
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 	v.AutomaticEnv()
+	v.SetDefault("format", "text")
 	v.SetDefault("output", "text")
+	v.SetDefault("quiet", false)
+	v.SetDefault("no_input", false)
+	v.SetDefault("no_color", false)
 
 	if configFile != "" {
 		v.SetConfigFile(configFile)
@@ -31,11 +41,27 @@ func Load(configFile, envPrefix, output string) error {
 
 	if output != "" {
 		v.Set("output", output)
+		v.Set("format", output)
+	}
+	if format != "" {
+		v.Set("format", format)
+	}
+	v.Set("quiet", quiet)
+	v.Set("no_input", noInput)
+	v.Set("no_color", noColor)
+	if traceID != "" {
+		v.Set("trace_id", traceID)
 	}
 
 	cfg := Config{}
 	if err := v.Unmarshal(&cfg); err != nil {
 		return fmt.Errorf("decode config: %w", err)
+	}
+	if cfg.Format == "" {
+		cfg.Format = cfg.Output
+	}
+	if cfg.Output == "" {
+		cfg.Output = cfg.Format
 	}
 
 	current = cfg

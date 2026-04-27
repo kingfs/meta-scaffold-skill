@@ -15,7 +15,7 @@ type App struct {
 
 func New() (*App, error) {
 	cfg := config.Current()
-	printer := output.New(cfg.Output)
+	printer := output.New(cfg.Format, cfg.Quiet, cfg.TraceID)
 	runner := __CLI_PACKAGE_NAME__.NewRunner(printer)
 
 	return &App{
@@ -24,6 +24,6 @@ func New() (*App, error) {
 	}, nil
 }
 
-func (a *App) Run(ctx context.Context) error {
-	return a.runner.Run(ctx)
+func (a *App) Run(ctx context.Context, command string, dryRun bool) error {
+	return a.runner.Run(ctx, command, dryRun)
 }

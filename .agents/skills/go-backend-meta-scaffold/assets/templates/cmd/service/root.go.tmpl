@@ -9,6 +9,11 @@ import (
 
 var (
 	configPath string
+	format     string
+	quiet      bool
+	noInput    bool
+	noColor    bool
+	traceID    string
 	rootCmd    = &cobra.Command{
 		Use:          "__SERVICE_NAME__",
 		SilenceUsage: true,
@@ -17,6 +22,11 @@ var (
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&configPath, "config", "c", "/app/config/config.yml", "Path to config file")
+	rootCmd.PersistentFlags().StringVar(&format, "format", "text", "output format: text, json, ndjson, table, pretty, yaml")
+	rootCmd.PersistentFlags().BoolVar(&quiet, "quiet", false, "suppress non-result output")
+	rootCmd.PersistentFlags().BoolVar(&noInput, "no-input", false, "fail instead of prompting for missing input")
+	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "disable colored output")
+	rootCmd.PersistentFlags().StringVar(&traceID, "trace-id", "", "trace id to include in structured output")
 }
 
 func execute() {

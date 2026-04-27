@@ -44,5 +44,9 @@
 - 当 `ent/schema/**` 发生变化并完成 `go generate ./ent/...` 后，在提交前必须生成 migration，并执行 `go run -mod=mod ent/migrate/update_hash.go ent/migrations` 更新 `atlas.sum`
 - 同一个 commit 内，如果出现多份尚未提交的 migration，应合并为一套最终 migration；不要改写已提交或已发布的历史 migration
 - `cmd/<service>/` 下的 `cobra` 子命令应分文件组织，并通过 `init()` 注册到 root command；默认保留 `serve`、`migrate up`、`migrate down`
+- 服务二进制的 agent 自动化路径优先使用 `--format json --no-input --no-color`
+- 运维命令 stdout 只放主结果；stderr 放诊断、warning 和 human hint
+- 新增有副作用运维命令时必须提供 `--dry-run` 或 preview；destructive 操作使用 `--confirm <resource-id>`
+- `config inspect`、`schema`、`health` 等命令不得输出未脱敏 secrets、token、cookie、数据库密码或生产连接串
 - 优先最小改动，保持生成链与目录边界稳定
 - 允许项目内存在 `dist/`、`coverage/`、`.task/` 这类显式产物或临时目录，但不要新建或提交 `.cache/`、语言包缓存、编译缓存等仓库级工具缓存目录

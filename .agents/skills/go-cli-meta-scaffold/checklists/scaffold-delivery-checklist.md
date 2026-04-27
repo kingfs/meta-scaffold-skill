@@ -4,6 +4,13 @@
 
 - `cmd/<cli-name>/` 是否采用 `main.go + root.go + version.go + completion.go + 业务命令文件` 的分文件结构
 - `main.go` 是否仅负责启动，不承载具体命令逻辑
+- 根命令是否提供 `--format json|ndjson|table|pretty|yaml`、`--quiet`、`--no-input`、`--no-color`、`--trace-id`
+- JSON 成功输出是否包含稳定 envelope，且 stdout 没有混入日志、spinner、warning
+- JSON 失败输出是否包含 `code`、`category`、`field`、`retryable`、`safe_to_retry`、`suggested_commands`
+- 有副作用命令是否支持 `--dry-run` 或 preview，并回显目标资源、resolved config 与预计副作用
+- 自动化路径是否不会进入交互式 prompt，缺参数时是否结构化失败并给出修复建议
+- 大结果集是否提供分页、字段选择、过滤或 NDJSON streaming
+- secrets、token、cookie、连接串是否默认脱敏
 - `Taskfile.yml` 是否包含 `deps`、`lint`、`test`、`build`、`run`、`release:dry`
 - 初始化说明是否明确要求先执行 `task deps` 或 `go mod tidy`
 - `.goreleaser.yml` 是否存在，且最小构建目标、归档规则、版本注入参数明确

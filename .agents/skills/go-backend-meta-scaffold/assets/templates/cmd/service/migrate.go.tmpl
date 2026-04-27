@@ -13,6 +13,7 @@ import (
 
 var (
 	migrationsDir string
+	migrateDryRun bool
 	migrateCmd    = &cobra.Command{
 		Use:   "migrate",
 		Short: "Manage database migrations",
@@ -21,6 +22,7 @@ var (
 
 func init() {
 	migrateCmd.PersistentFlags().StringVar(&migrationsDir, "dir", "ent/migrations", "Path to migration files")
+	migrateCmd.PersistentFlags().BoolVar(&migrateDryRun, "dry-run", false, "Preview migration action without mutating the database")
 	rootCmd.AddCommand(migrateCmd)
 }
 

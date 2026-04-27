@@ -8,20 +8,57 @@ import (
 )
 
 type Printer struct {
-	mode string
-	out  io.Writer
-	err  io.Writer
+	format  string
+	quiet   bool
+	traceID string
+	out     io.Writer
+	err     io.Writer
 }
 
-func New(mode string) *Printer {
-	if mode == "" {
-		mode = "text"
+type ResultEnvelope struct {
+	OK       bool     `json:"ok"`
+	Command  string   `json:"command,omitempty"`
+	TraceID  string   `json:"trace_id,omitempty"`
+	DryRun   bool     `json:"dry_run"`
+	Mutated  bool     `json:"mutated"`
+	Result   any      `json:"result,omitempty"`
+	Warnings []string `json:"warnings"`
+	Next     []Next   `json:"next,omitempty"`
+}
+
+type Next struct {
+	Label   string `json:"label"`
+	Command string `json:"command"`
+}
+
+type ErrorEnvelope struct {
+	OK      bool            `json:"ok"`
+	Error   StructuredError `json:"error"`
+	TraceID string          `json:"trace_id,omitempty"`
+}
+
+type StructuredError struct {
+	Code              string   `json:"code"`
+	Category          string   `json:"category"`
+	Message           string   `json:"message"`
+	Field             string   `json:"field,omitempty"`
+	Retryable         bool     `json:"retryable"`
+	SafeToRetry       bool     `json:"safe_to_retry"`
+	SuggestedCommands []string `json:"suggested_commands,omitempty"`
+	Docs              string   `json:"docs,omitempty"`
+}
+
+func New(format string, quiet bool, traceID string) *Printer {
+	if format == "" {
+		format = "text"
 	}
 
 	return &Printer{
-		mode: mode,
-		out:  os.Stdout,
-		err:  os.Stderr,
+		format:  format,
+		quiet:   quiet,
+		traceID: traceID,
+		out:     os.Stdout,
+		err:     os.Stderr,
 	}
 }
 
@@ -37,13 +74,42 @@ func (p *Printer) PrintJSON(v any) error {
 }
 
 func (p *Printer) Print(v any) error {
-	if p.mode == "json" {
+	if p.format == "json" {
 		return p.PrintJSON(v)
 	}
 	return p.PrintText(fmt.Sprint(v))
 }
 
+func (p *Printer) PrintResult(command string, dryRun bool, mutated bool, result any) error {
+	if p.format == "json" {
+		return p.PrintJSON(ResultEnvelope{
+			OK:       true,
+			Command:  command,
+			TraceID:  p.traceID,
+			DryRun:   dryRun,
+			Mutated:  mutated,
+			Result:   result,
+			Warnings: []string{},
+		})
+	}
+	return p.Print(result)
+}
+
 func (p *Printer) PrintError(err error) error {
+	if p.quiet {
+		return nil
+	}
 	_, writeErr := fmt.Fprintln(p.err, err)
 	return writeErr
+}
+
+func (p *Printer) PrintStructuredError(err StructuredError) error {
+	if p.format == "json" {
+		return json.NewEncoder(p.out).Encode(ErrorEnvelope{
+			OK:      false,
+			Error:   err,
+			TraceID: p.traceID,
+		})
+	}
+	return p.PrintError(fmt.Errorf("%s: %s", err.Code, err.Message))
 }

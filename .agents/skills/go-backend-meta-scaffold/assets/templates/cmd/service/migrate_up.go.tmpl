@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/spf13/cobra"
@@ -13,6 +14,15 @@ var migrateUpCmd = &cobra.Command{
 	Use:   "up",
 	Short: "Apply pending migrations",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if migrateDryRun {
+			if format == "json" {
+				fmt.Printf("{\"ok\":true,\"command\":%q,\"dry_run\":true,\"mutated\":false,\"result\":{\"direction\":\"up\",\"steps\":%d,\"migrations_dir\":%q},\"warnings\":[]}\n", cmd.CommandPath(), migrateUpSteps, migrationsDir)
+				return nil
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "dry-run: would apply migrations from %s\n", migrationsDir)
+			return nil
+		}
+
 		m, err := newMigrator()
 		if err != nil {
 			return err

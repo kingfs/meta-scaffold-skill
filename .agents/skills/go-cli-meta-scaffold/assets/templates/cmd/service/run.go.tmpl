@@ -8,7 +8,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var runDryRun bool
+
 func init() {
+	runCmd.Flags().BoolVar(&runDryRun, "dry-run", false, "preview the primary workflow without mutating external state")
 	rootCmd.AddCommand(runCmd)
 }
 
@@ -20,6 +23,6 @@ var runCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		return application.Run(context.Background())
+		return application.Run(context.Background(), cmd.CommandPath(), runDryRun)
 	},
 }

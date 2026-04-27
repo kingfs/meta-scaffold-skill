@@ -57,3 +57,13 @@
 - `serve`：启动服务
 - `migrate up`：执行未应用 migration
 - `migrate down`：回滚 migration，默认按步数回滚，避免误清空数据库
+- `version`：输出版本信息
+
+## AI-native 运维命令契约
+
+- 根命令提供 `--format`、`--quiet`、`--no-input`、`--no-color`、`--trace-id`
+- `--format json` 输出稳定 envelope，包含 `ok`、`command`、`trace_id`、`dry_run`、`mutated`、`result`、`warnings`
+- stdout 只输出主结果；stderr 只输出诊断和提示
+- `migrate` 等有副作用命令必须支持 `--dry-run` 或 preview
+- `config inspect`、`schema`、`health` 等按需命令应声明权限、输出 schema、副作用和脱敏策略
+- 错误应能映射到 usage、validation、auth、policy、conflict、rate_limit、transient、api、internal 等类别

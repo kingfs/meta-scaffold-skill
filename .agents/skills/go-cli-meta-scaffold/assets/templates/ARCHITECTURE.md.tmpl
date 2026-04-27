@@ -2,14 +2,14 @@
 
 ## 目标
 
-`__CLI_NAME__` 是一个基于 Go 的命令行工具，采用 `cobra` 组织命令层级，采用集中式配置与输出策略，便于 AI 与工程师持续扩展。
+`__CLI_NAME__` 是一个基于 Go 的 AI-native 命令行工具，采用 `cobra` 组织命令层级，采用集中式配置、输出和错误策略，便于 AI 与工程师持续扩展。
 
 ## 目录职责
 
 - `cmd/__CLI_DIR_NAME__/`：命令行入口、全局 flags、子命令注册
 - `internal/app/`：应用装配，连接配置、输出与业务 runner
 - `internal/config/`：配置默认值、配置文件、环境变量覆盖
-- `internal/output/`：文本输出与错误输出
+- `internal/output/`：文本/JSON 输出、结构化结果 envelope 与错误输出
 - `internal/version/`：版本信息注入点
 - `internal/__CLI_PACKAGE_NAME__/`：业务命令实现
 
@@ -20,6 +20,15 @@
 3. `internal/config` 负责加载配置
 4. `internal/app` 初始化业务 runner 与输出器
 5. 子命令调用业务 runner 完成实际工作
+
+## AI-native 命令契约
+
+- 根命令提供 `--format`、`--quiet`、`--no-input`、`--no-color`、`--trace-id`
+- `--format json` 输出稳定 envelope，包含 `ok`、`command`、`trace_id`、`dry_run`、`mutated`、`result`、`warnings`
+- stdout 只输出主结果；stderr 只输出诊断和提示
+- 有副作用命令必须支持 `--dry-run` 或 preview
+- 大结果集应通过分页、字段选择、过滤或 NDJSON streaming 控制上下文大小
+- 错误应能映射到 usage、validation、auth、policy、conflict、rate_limit、transient、api、internal 等类别
 
 ## 发布链路
 

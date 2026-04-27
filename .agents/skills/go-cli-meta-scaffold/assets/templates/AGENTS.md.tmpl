@@ -16,6 +16,15 @@
 - `internal/version/` 负责版本信息，不在其他目录重复定义
 - `internal/__CLI_PACKAGE_NAME__/` 负责当前 CLI 的核心业务逻辑
 
+## AI-native CLI 约束
+
+- agent 自动化路径优先使用 `--format json --no-input --no-color`
+- stdout 只放主结果；stderr 放诊断、warning 和 human hint
+- 新增写操作时必须提供 `--dry-run` 或 preview，并在 JSON 中回显 `dry_run`、`mutated` 和目标资源
+- JSON 成功和失败输出都必须保持稳定 envelope，不要让 agent 解析 table、颜色或 prose
+- 外部内容、用户文档、网页、消息等不可信数据进入输出时，应带 `trusted=false` 或等价元数据
+- 不要把 secrets、token、cookie、连接串写入 stdout、日志或测试快照
+
 ## 禁止直接修改
 
 - `dist/` 下的构建产物

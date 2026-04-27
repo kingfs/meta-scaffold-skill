@@ -178,6 +178,7 @@ move_if_exists "$TARGET_DIR/cmd/service/serve.go.tmpl" "$TARGET_DIR/cmd/$SERVICE
 move_if_exists "$TARGET_DIR/cmd/service/migrate.go.tmpl" "$TARGET_DIR/cmd/$SERVICE_NAME/migrate.go"
 move_if_exists "$TARGET_DIR/cmd/service/migrate_up.go.tmpl" "$TARGET_DIR/cmd/$SERVICE_NAME/migrate_up.go"
 move_if_exists "$TARGET_DIR/cmd/service/migrate_down.go.tmpl" "$TARGET_DIR/cmd/$SERVICE_NAME/migrate_down.go"
+move_if_exists "$TARGET_DIR/cmd/service/version.go.tmpl" "$TARGET_DIR/cmd/$SERVICE_NAME/version.go"
 move_if_exists "$TARGET_DIR/internal/config/config.go.tmpl" "$TARGET_DIR/internal/config/config.go"
 move_if_exists "$TARGET_DIR/internal/app/app.go.tmpl" "$TARGET_DIR/internal/app/app.go"
 move_if_exists "$TARGET_DIR/internal/app/wire.go.tmpl" "$TARGET_DIR/internal/app/wire.go"

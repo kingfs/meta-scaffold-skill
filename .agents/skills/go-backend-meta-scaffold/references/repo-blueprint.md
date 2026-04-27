@@ -29,7 +29,11 @@
 │       ├── serve.go
 │       ├── migrate.go
 │       ├── migrate_up.go
-│       └── migrate_down.go
+│       ├── migrate_down.go
+│       ├── version.go
+│       ├── health.go              # 按需
+│       ├── config_inspect.go      # 按需
+│       └── schema.go              # 按需
 ├── internal/
 │   ├── app/                      # 启动编排、wire injector 入口
 │   ├── application/              # 用例服务，事务边界，命令/查询编排
@@ -166,8 +170,19 @@
   - `migrate up`
   - `migrate down`
   - `version`
+- 按需提供：
+  - `health`
+  - `config inspect`
+  - `schema`
 - `serve` 支持 `--config` / `-c`
 - `migrate up/down` 可优先基于 `github.com/golang-migrate/migrate`，并从镜像内的 `ent/migrations/**` 读取 SQL 文件
+- 根命令提供 AI-native 全局 flags：`--format json|ndjson|table|pretty|yaml`、`--quiet`、`--no-input`、`--no-color`、`--trace-id`
+- stdout 只输出主结果；stderr 输出进度、warning、诊断和 human hint
+- JSON 成功输出建议包含 `ok`、`command`、`trace_id`、`dry_run`、`mutated`、`result`、`warnings`、`next`
+- JSON 错误输出建议包含 `ok=false`、`error.code`、`error.category`、`error.field`、`retryable`、`safe_to_retry`、`suggested_commands`
+- 有副作用命令必须提供 `--dry-run` 或 preview；destructive 操作使用 `--confirm <resource-id>`
+- `schema` 或机器可读 help 用于说明命令参数、输出结构、权限需求、副作用范围和常见错误
+- `config inspect` 默认脱敏 secrets、token、cookie、数据库密码和生产连接串
 
 ## 测试策略
 
@@ -178,6 +193,7 @@
   - repository、事务、migration、proto adapter
 - 端到端测试：
   - 从真实入口发起请求，覆盖核心 happy path 和至少一个失败路径
+  - 覆盖服务 CLI 的 `--format json` 成功与失败路径、`--no-input` 缺参路径、migration dry-run 或 preview
 
 ## Taskfile 约束
 

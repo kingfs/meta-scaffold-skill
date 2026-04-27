@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"encoding/json"
 	"os/exec"
 	"strings"
 	"testing"
@@ -31,5 +32,28 @@ func TestPrimaryCommand(t *testing.T) {
 
 	if !strings.Contains(string(output), "__PRIMARY_COMMAND_USE__ executed") {
 		t.Fatalf("unexpected primary command output: %s", string(output))
+	}
+}
+
+func TestPrimaryCommandJSON(t *testing.T) {
+	cmd := exec.Command("go", "run", "./cmd/__CLI_DIR_NAME__", "--format", "json", "__PRIMARY_COMMAND_USE__", "--dry-run")
+	cmd.Dir = "../.."
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("run primary command json: %v, output=%s", err, string(output))
+	}
+
+	var envelope struct {
+		OK      bool   `json:"ok"`
+		Command string `json:"command"`
+		DryRun  bool   `json:"dry_run"`
+		Mutated bool   `json:"mutated"`
+	}
+	if err := json.Unmarshal(output, &envelope); err != nil {
+		t.Fatalf("decode json output: %v, output=%s", err, string(output))
+	}
+	if !envelope.OK || !envelope.DryRun || envelope.Mutated {
+		t.Fatalf("unexpected envelope: %+v", envelope)
 	}
 }

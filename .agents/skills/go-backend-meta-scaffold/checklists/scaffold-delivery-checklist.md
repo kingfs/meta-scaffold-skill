@@ -34,6 +34,11 @@
 - 配置管理使用 `viper`
 - 存在 `serve --config` 或 `-c`
 - 存在 `migrate up` 与 `migrate down`
+- 存在 `version`，按需存在 `health`、`config inspect`、`schema`
+- 根命令提供 `--format json|ndjson|table|pretty|yaml`、`--quiet`、`--no-input`、`--no-color`、`--trace-id`
+- JSON 成功与失败输出使用稳定 envelope，stdout 不混入日志、spinner、warning
+- migrate、config、schema 等运维命令明确 dry-run、脱敏和确认边界
+- 自动化路径不会进入交互式 prompt，缺参数时结构化失败并给出修复建议
 - Docker runtime 满足 `/app/bin` 与 `/app/config` 约定
 
 ## 质量保障

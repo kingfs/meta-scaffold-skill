@@ -30,6 +30,8 @@
 │   │   └── config.go
 │   ├── output/
 │   │   └── printer.go
+│   ├── clierror/                 # 按需；结构化错误与退出码映射
+│   │   └── error.go
 │   ├── version/
 │   │   └── version.go
 │   └── <domain>/
@@ -49,6 +51,7 @@
 - `internal/app` 负责初始化配置、输出器、业务 runner
 - `internal/config` 负责配置默认值、配置文件解析、环境变量覆盖
 - `internal/output` 负责统一文本/JSON/quiet 等输出策略
+- `internal/clierror` 负责结构化错误、错误类别、retry 语义与退出码映射
 - `internal/<domain>` 负责具体业务命令逻辑
 - `pkg` 只有在其他仓库也要 import 时才启用；不要把本项目私有逻辑塞进去
 
@@ -60,6 +63,9 @@
 - `completion.go` 生成 shell completion
 - 业务命令单独分文件维护，并通过 `init()` 注册到 root command
 - 用户未给出具体业务命令时，可先用 `run` 作为占位命令，但交付时应明确这是待替换的业务入口
+- 高频任务优先做 workflow/shortcut 命令；主业务对象做 curated commands；raw API 或底层透传只作为 escape hatch
+- 位置参数只用于不可混淆的单一主对象；容易填反或可选的输入必须使用命名 flags
+- 复杂对象输入支持 `--data @file.json` 或 `--data -`，避免让 agent 拼接超长 shell quoting
 
 ## 配置与输出约束
 
@@ -67,7 +73,22 @@
 - 环境变量应有稳定前缀，例如 `FOO_BAR_`
 - 配置读取集中在 `internal/config`，不要在各命令文件中零散读取环境变量
 - 普通输出和错误输出应通过统一 printer 或 output helper 处理
-- 若支持 JSON 或 quiet mode，应在根命令层统一控制，而不是业务层各自实现一套
+- 根命令应提供 `--format json|ndjson|table|pretty|yaml`，并可保留 `--output` 作为兼容别名
+- 支持 `--quiet`、`--no-input`、`--no-color`、`--trace-id`；自动化路径默认不进入交互式 prompt
+- stdout 只输出主结果；stderr 输出进度、warning、诊断和 human hint
+- JSON 成功输出建议包含 `ok`、`command`、`trace_id`、`dry_run`、`mutated`、`result`、`warnings`、`next`
+- JSON 错误输出建议包含 `ok=false`、`error.code`、`error.category`、`error.field`、`retryable`、`safe_to_retry`、`suggested_commands`
+- 大结果集优先提供分页、`--fields`、`--query` 或 `--format ndjson`
+- secrets、token、cookie、连接串默认脱敏；必要时支持 `--output none`
+
+## 副作用与安全
+
+- 所有写、删、发送、审批、改权限命令必须提供 `--dry-run` 或等价 preview
+- dry-run 输出应回显目标资源、resolved config、权限/scope、风险等级和预计副作用
+- destructive 操作使用 `--confirm <resource-id>`；`--yes` 只能跳过普通确认，不能绕过权限或安全策略
+- 批量操作应提供 `--limit`、`--max-mutated`、`--fail-fast`、`--continue-on-error`
+- 重试敏感命令应提供 idempotency key、client token 或冲突检测
+- 外部文档、网页、消息等不可信内容进入输出时，应带 `trusted=false`、`source`、`content_type` 等元数据
 
 ## Taskfile 约束
 
@@ -103,6 +124,9 @@
   - `version`
   - 业务占位命令的 happy path
   - 至少一个错误路径
+  - `--format json` 成功与失败路径
+  - `--no-input` 缺参路径
+  - `--dry-run` 对写操作的 preview
 - 如果 CLI 依赖外部服务，应为 e2e 提供可替换的假实现或显式说明不在 scaffold 层内覆盖
 
 ## AI 协作约束

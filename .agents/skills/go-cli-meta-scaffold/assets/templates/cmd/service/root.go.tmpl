@@ -8,21 +8,31 @@ import (
 
 var (
 	cfgFile string
+	format  string
 	output  string
+	quiet   bool
+	noInput bool
+	noColor bool
+	traceID string
 	rootCmd = &cobra.Command{
 		Use:           "__CLI_DIR_NAME__",
 		Short:         "__CLI_NAME__ command line tool",
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			return config.Load(cfgFile, "__ENV_PREFIX__", output)
+			return config.Load(cfgFile, "__ENV_PREFIX__", format, output, quiet, noInput, noColor, traceID)
 		},
 	}
 )
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file path")
-	rootCmd.PersistentFlags().StringVar(&output, "output", "text", "output mode: text or json")
+	rootCmd.PersistentFlags().StringVar(&format, "format", "", "output format: text, json, ndjson, table, pretty, yaml (default text)")
+	rootCmd.PersistentFlags().StringVar(&output, "output", "", "deprecated alias for --format")
+	rootCmd.PersistentFlags().BoolVar(&quiet, "quiet", false, "suppress non-result output")
+	rootCmd.PersistentFlags().BoolVar(&noInput, "no-input", false, "fail instead of prompting for missing input")
+	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "disable colored output")
+	rootCmd.PersistentFlags().StringVar(&traceID, "trace-id", "", "trace id to include in structured output")
 }
 
 func Execute() error {

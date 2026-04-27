@@ -20,6 +20,18 @@ var migrateDownCmd = &cobra.Command{
 		if migrateDownAll && migrateDownSteps > 0 {
 			return fmt.Errorf("use either --all or --step")
 		}
+		if migrateDryRun {
+			steps := migrateDownSteps
+			if !migrateDownAll && steps <= 0 {
+				steps = 1
+			}
+			if format == "json" {
+				fmt.Printf("{\"ok\":true,\"command\":%q,\"dry_run\":true,\"mutated\":false,\"result\":{\"direction\":\"down\",\"all\":%t,\"steps\":%d,\"migrations_dir\":%q},\"warnings\":[]}\n", cmd.CommandPath(), migrateDownAll, steps, migrationsDir)
+				return nil
+			}
+			fmt.Fprintf(cmd.OutOrStdout(), "dry-run: would roll back migrations from %s\n", migrationsDir)
+			return nil
+		}
 
 		m, err := newMigrator()
 		if err != nil {
